@@ -1,4 +1,4 @@
-# Minimal-Embeddable-HTTP-Server (MEHS)
+# minimal-embeddable-HTTP-server (meHs)
 A minimal HTTP / HTTPS Server capable of scripting for embedding. 
 
 We are using Code::Blocks on Linux.
