@@ -247,13 +247,13 @@ void HttpsService::ProcessGetRequest(SSLStream ssl_stream)
   //if resource is null or / then set resource to index.html file
   if(m_RequestedResource.compare("/") == 0){
     m_RequestedResource = std::string("/index.html");
-    std::ofstream outfile(RESOURCE_DIRECTORY_PATH + m_RequestedResource, std::ios::out);
+    std::ofstream outfile(RESOURCE_DIR_PATH + m_RequestedResource, std::ios::out);
     outfile<<m_DefaultIndexPage;
     outfile.close();
   }
 
   //get full resource file path
-  std::string resource_file_path = RESOURCE_DIRECTORY_PATH + m_RequestedResource;
+  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
 
   //check if file exists
   //otherwise set status code to 404
@@ -313,7 +313,7 @@ void HttpsService::ProcessPostRequest(SSLStream ssl_stream)
     return;
   }
 
-  std::string resource_file_path = RESOURCE_DIRECTORY_PATH + m_RequestedResource;
+  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
 
   if(!boost::filesystem::exists(resource_file_path)){
     m_ResponseStatusCode = 404;
@@ -331,7 +331,7 @@ void HttpsService::ProcessPostRequest(SSLStream ssl_stream)
       cmd = cmd + " \"" + m_ScriptData + "\"";
 
     //a temporary file where output of an PHP interpretor will be stores
-    std::string php_output_file = RESOURCE_DIRECTORY_PATH + std::string("/tempfile");
+    std::string php_output_file = RESOURCE_DIR_PATH + std::string("/tempfile");
 
     std::cout<<"Executing command: "<<cmd<<std::endl;
 
@@ -375,7 +375,7 @@ void HttpsService::ProcessPostRequest(SSLStream ssl_stream)
 
            std::cout<<"Executing command: "<<cmd<<std::endl;
            //a temporary file where output of an executed program will be stored
-           std::string cgi_output_file = RESOURCE_DIRECTORY_PATH + std::string("/cgi_tempfile");
+           std::string cgi_output_file = RESOURCE_DIR_PATH + std::string("/cgi_tempfile");
 
            ExecuteProgram(cmd, cgi_output_file);
 
@@ -431,7 +431,7 @@ void HttpsService::ProcessHeadRequest(SSLStream ssl_stream)
     return;
   }
 
-  std::string resource_file_path = RESOURCE_DIRECTORY_PATH + m_RequestedResource;
+  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
 
   if(!boost::filesystem::exists(resource_file_path)){
     m_ResponseStatusCode = 404;
@@ -462,7 +462,7 @@ void HttpsService::ProcessDeleteRequest(SSLStream ssl_stream)
     return;
   }
 
-  std::string resource_file_path = RESOURCE_DIRECTORY_PATH + m_RequestedResource;
+  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
 
   if(!boost::filesystem::exists(resource_file_path)){
     m_ResponseStatusCode = 404;
@@ -546,39 +546,87 @@ void HttpsService::Finish()
 main
 
 ***/
-
-int main(int argc, char** argv)
+int main() //no args
 {
 
-  unsigned short port = 1234;
+   std::string pwd = get_current_dir_name(); //pwd
 
-  if(argc < 2){
-    std::cout<<"./httpserver <resource-directory-path>"<<std::endl;
-    return 0;
-  }
+   RESOURCE_DIR_PATH = pwd + "/programs";
+   CONF_FILE_PATH = pwd + "/esketit.conf";
+   SSL_CERT_PATH = pwd + "/sslcert";
 
-  std::string path(argv[1]);
-  if(path.at(path.length() - 1) == '/')
-    path.pop_back();
+   std::cout << std::endl << pwd << std::endl;
 
-  RESOURCE_DIRECTORY_PATH = std::move(path);
+        unsigned short port = 8080;
 
-  try{
-    HttpsServer https_server;
+    /**********************************
 
-    https_server.Start(port);
+    Do a few things to start i.e init();
 
-    //keep alive server for 5 minutes, delete this and next line
-    //if you want to keep it alive for infinite time
-    std::this_thread::sleep_for(std::chrono::seconds(60 * 5));
+    1. Port, if no port is given we should just have a default port
+    2. Check for valid SSL certs ./sslcert/ x.key & x.cert if they are not found revert to http
+    3. Set the non user configurable standard htdocs path - ./programs/
+    4. Option to disable the server in preference for an alt stack
+    5. Basic conf /etc/xxxx.conf to read from
+    6. No args and no switches, conf file only or reverts to defaults
 
-    https_server.Stop();
-  }catch(boost::system::system_error &e){
-    std::cout<<"Error occured, Error code = "<<e.code()
-             <<" Message: "<<e.what();
-  }
+    Just menial stuff, we'll just create an functions.hpp and put it all in there.
+
+    ***********************************/
+
+    //1 do we disable this server?
+    int ret = filechecks();
+
+    if (ret == 99999) {
+
+            exit(0); //999999 arbitary return code to exit
+
+    } else {
+
+        port = ret;  // 2. what port to use
+        std::cout << "Port is " << port << std::endl;
+
+    }
+    //2.
+    ret = is_htdocs_there();
+
+    if (ret == 1) {}
+    else {}
+
+    //3.
+    ret = is_SSL_there();
+
+    if (ret == 1) { //start SSL version
+
+    //try{
+
+            HttpsServer https_server;
+
+            https_server.Start(port);
+
+            //keep alive server for 5 minutes, delete this and next line
+            //if you want to keep it alive for infinite time
+            std::this_thread::sleep_for(std::chrono::seconds(60 * 5));
+
+            https_server.Stop();
+
+     //}catch(boost::system::system_error &e){
+     // std::cout<<"Error occured, Error code = "<<e.code()
+     //        <<" Message: "<<e.what();
+     //}
+
+
+    } else { //start http version
+
+        std::cerr << "SSL certificates not found";
+        //future version todo revert to http
+            return 1;
+
+    }
+
+ // std::string path(argv[1]);
+ // if(path.at(path.length() - 1) == '/')
+ //   path.pop_back();
 
   return 0;
 }
-
-

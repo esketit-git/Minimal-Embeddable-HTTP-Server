@@ -1,5 +1,5 @@
-#ifndef FUNCIONS_HPP
-#define FUNCTIONS_HPP
+#ifndef FUNCTIONS_HPP_INCLUDED
+#define FUNCTIONS_HPP_INCLUDED
 
 #include <iostream>
 #include <thread>
@@ -10,6 +10,8 @@
 #include <chrono>
 #include <ctime>
 
+#include <algorithm>
+
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <unordered_map>
@@ -17,9 +19,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-std::string RESOURCE_DIRECTORY_PATH;
+std::string RESOURCE_DIR_PATH;
 std::string CONF_FILE_PATH;
-std::string SSL_DIRECTORY_PATH;
+std::string SSL_CERT_PATH;
+
+//global paths
+//extern const std::string RESOURCE_DIRECTORY_PATH; // e.g var/www/html
+//extern std::string RESOURCE_DIRECTORY_PATH;
+//extern std::string CONF_DIRECTORY_PATH; // e.g etc
+//extern std::string SSL_CERT_DIRECTORY_PATH; // e.g /etc/certs
 
 /*
 HTTP status codes
@@ -184,14 +192,120 @@ class HttpsAcceptor
 };
 
 
-class functions
-{
 
-public:
+int filechecks() {
+
+    unsigned short port = 8080; int value_int; std::string line;
+    //std::ifstream is RAII, i.e. no need to call close
+
+/********************* Conf file */
+
+    std::ifstream conf ( CONF_FILE_PATH );
+
+    if (conf.is_open())
+    {
+
+        while(getline(conf, line)){ //read the file # ignore comments
+            line.erase(remove_if(line.begin(), line.end(), ::isspace),
+                                 line.end());
+            if(line[0] == '#' || line.empty())
+                continue;
+                    auto delimiterPos = line.find("=");
+                    auto name = line.substr(0, delimiterPos);
+                    auto value = line.substr(delimiterPos + 1);
+
+                    //std::cout << name << " - " << value << '\n';
+
+            value_int = std::stoi(value); //check for disable
+
+            if (name.compare("enable") != 0 && value_int == 0)  {
+
+                return(99999);  //99999 means disable server - do not run
+
+            }
+
+            //check port otherwise use default
+            if (name.compare("port") && value_int > 0 && value_int < 65535) {
+
+                port = value_int;
+
+            } else {
+
+                port = 8080; //revert to default port
+            }
+
+        } //while
+
+    } else { //the conf file is missing
+
+        std::cerr << std::endl << "Couldn't open config file for reading." << std::endl;
+        //set the default port and start the server
+        port = 8080; //revert to default port
+
+    }
 
 
+conf.close();
 
-};
+
+    return port;
+
+}
+
+/********************* Working Dir */
+
+/*
+ make sure the base system is there and complete
+ check the entire base system make sure we are good to go
+ wget anything that is missing
+ */
+bool is_htdocs_there() {
+
+    std::ifstream wFile (RESOURCE_DIR_PATH);
+    //std::ifstream wFile ("programs/index.php");
+
+    if (wFile.is_open())
+    {
+
+
+        return 1;
+
+
+    } else {
+
+        std::cerr << std::endl << "htdocs not found" << std::endl;
+        return 0;
+
+    }
+
+    wFile.close();
+
+}
+
+bool is_SSL_there() {
+
+  /********************* SSL file */
+      std::ifstream sFile1 (SSL_CERT_PATH + "/fullchain.pem");
+      std::ifstream sFile2 (SSL_CERT_PATH + "/privkey.pem");
+
+      if (sFile1.is_open() && sFile2.is_open())
+      {
+
+          return 1;  //proceed with SSL https
+
+
+      } else {
+
+
+          return 0; // revert  start HTTP
+
+      }
+
+
+  sFile1.close(); sFile2.close();
+
+}
+
 
 
 #endif
