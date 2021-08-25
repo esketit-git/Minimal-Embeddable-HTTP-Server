@@ -1,17 +1,17 @@
-#ifndef HTTPSERVICE_HPP
-#define HTTPSERVICE_HPP
+#ifndef FUNCIONS_HPP
+#define FUNCTIONS_HPP
 
 #include <iostream>
 #include <thread>
 #include <string>
 #include <memory>
 #include <atomic>
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
-
 #include <fstream>
 #include <chrono>
 #include <ctime>
+
+#include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <unordered_map>
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
@@ -20,6 +20,29 @@
 std::string RESOURCE_DIRECTORY_PATH;
 std::string CONF_FILE_PATH;
 std::string SSL_DIRECTORY_PATH;
+
+/*
+HTTP status codes
+for more status codes https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+*/
+std::unordered_map<unsigned int, std::string> HttpStatusTable =
+{
+  {101, "Switching Protocols"},
+  {201, "Created"},
+  {202, "Accepted"},
+  {200, "200 OK" },
+  {400, "Bad Request"},
+  {401, "Unauthorized"},
+  {404, "404 Not Found" },
+  {408, "Request Timeout"},
+  {413, "413 Request Entity Too Large" },
+  {500, "500 Internal Server Error" },
+  {501, "501 Not Implemented" },
+  {502, "Bad Gateway"},
+  {503, "Service Unavailable"},
+  {505, "505 HTTP Version Not Supported" }
+};
+
 
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& SSLStream;
 

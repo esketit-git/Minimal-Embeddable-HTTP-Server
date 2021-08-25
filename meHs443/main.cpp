@@ -1,5 +1,6 @@
 #include "functions.hpp"
 
+
 /***
 
 HttpsServer - the server listens
@@ -78,14 +79,12 @@ void HttpsAcceptor::Start()
   // create Https service and handle that request
   HttpsService service;
   service.HttpsHandleRequest(ssl_stream);
-
 }
 
 void HttpsAcceptor::Stop()
 {
   m_IsStopped.store(true);
 }
-
 
 
 /***
@@ -150,8 +149,6 @@ std::shared_ptr<HttpRequest> HttpRequestParser::GetHttpRequest()
 
 }
 
-
-extern std::string RESOURCE_DIRECTORY_PATH;
 
 HttpsService::HttpsService():m_Request(4096), m_IsResponseSent(false)
 {}
