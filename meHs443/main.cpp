@@ -19,8 +19,8 @@ void HttpsServer::Start(unsigned short port)
      StartAcceptor(port);
   }));
 
-  std::cout<<"Server started at address: 127.0.0.1, port: 1234"<<std::endl;
-  std::cout<<"Goto https://127.0.0.1:1234/"<<std::endl;
+  std::cout << "Server started at address: 127.0.0.1 port " <<  port << std::endl;
+  std::cout << "Goto https://127.0.0.1:" << port << std::endl;
 }
 
 void HttpsServer::StartAcceptor(unsigned short port)
@@ -60,9 +60,9 @@ HttpsAcceptor::HttpsAcceptor(boost::asio::io_service& ios, unsigned short port):
       boost::asio::ssl::context::single_dh_use);
 
   // set ssl certification file
-  m_SSLContext.use_certificate_chain_file("HttpsWebServer.cert");
+  m_SSLContext.use_certificate_chain_file(SSL_CERT_PATH);
   // set ssl private key file
-  m_SSLContext.use_private_key_file("HttpsWebServer.key", boost::asio::ssl::context::pem);
+  m_SSLContext.use_private_key_file(SSL_KEY_PATH, boost::asio::ssl::context::pem);
 }
 
 
@@ -75,6 +75,8 @@ void HttpsAcceptor::Start()
 
   // accept client request
   m_Acceptor.accept(ssl_stream.lowest_layer());
+
+        //  if ( ec == http::error::end_of_stream || ec == asio::ssl::error::stream_truncated) break;
 
   // create Https service and handle that request
   HttpsService service;
@@ -157,7 +159,7 @@ HttpsService::HttpsService():m_Request(4096), m_IsResponseSent(false)
 //Handle each HTTP request made by client
 void HttpsService::HttpsHandleRequest(SSLStream ssl_stream)
 {
-  try{
+  //try{
     //perform TLS handshake
     ssl_stream.handshake(boost::asio::ssl::stream_base::server);
 
@@ -210,10 +212,10 @@ void HttpsService::HttpsHandleRequest(SSLStream ssl_stream)
     }
         return;
     }
-  }catch(boost::system::system_error& ec) {
-    std::cout<<"Error occured, Error code = "<<ec.code()
-                  <<" Message: "<<ec.what();
-  }
+ // }catch(boost::system::system_error& ec) {
+ //   std::cout<<"Error occured, Error code = "<<ec.code()
+       //           <<" Message: "<<ec.what();
+  //}
 }
 
 //returns ip address of connected endpoint
@@ -553,7 +555,8 @@ int main() //no args
 
    RESOURCE_DIR_PATH = pwd + "/programs";
    CONF_FILE_PATH = pwd + "/esketit.conf";
-   SSL_CERT_PATH = pwd + "/sslcert";
+   SSL_CERT_PATH = pwd + "/sslcert/esketit.cert";
+   SSL_KEY_PATH = pwd + "/sslcert/esketit.key";
 
    std::cout << std::endl << pwd << std::endl;
 
@@ -584,7 +587,7 @@ int main() //no args
     } else {
 
         port = ret;  // 2. what port to use
-        std::cout << "Port is " << port << std::endl;
+       // std::cout << std::endl << "Port: " << port << std::endl;
 
     }
     //2.
@@ -618,7 +621,7 @@ int main() //no args
 
     } else { //start http version
 
-        std::cerr << "SSL certificates not found";
+        std::cerr << "SSL certificates not found. Todo revert to port 80" << std::endl << std::endl;
         //future version todo revert to http
             return 1;
 

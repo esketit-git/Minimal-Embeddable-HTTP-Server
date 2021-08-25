@@ -19,15 +19,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-std::string RESOURCE_DIR_PATH;
-std::string CONF_FILE_PATH;
-std::string SSL_CERT_PATH;
-
 //global paths
-//extern const std::string RESOURCE_DIRECTORY_PATH; // e.g var/www/html
-//extern std::string RESOURCE_DIRECTORY_PATH;
-//extern std::string CONF_DIRECTORY_PATH; // e.g etc
-//extern std::string SSL_CERT_DIRECTORY_PATH; // e.g /etc/certs
+std::string RESOURCE_DIR_PATH; //pwd and /programs/
+std::string CONF_FILE_PATH; //usually /etc/ .conf
+std::string SSL_KEY_PATH; // pwd and sslcert/ssl.key
+std::string SSL_CERT_PATH; //pwd and sslcert/ssk.cert
 
 /*
 HTTP status codes
@@ -267,7 +263,6 @@ bool is_htdocs_there() {
     if (wFile.is_open())
     {
 
-
         return 1;
 
 
@@ -285,8 +280,8 @@ bool is_htdocs_there() {
 bool is_SSL_there() {
 
   /********************* SSL file */
-      std::ifstream sFile1 (SSL_CERT_PATH + "/fullchain.pem");
-      std::ifstream sFile2 (SSL_CERT_PATH + "/privkey.pem");
+      std::ifstream sFile1 (SSL_CERT_PATH);
+      std::ifstream sFile2 (SSL_KEY_PATH);
 
       if (sFile1.is_open() && sFile2.is_open())
       {
