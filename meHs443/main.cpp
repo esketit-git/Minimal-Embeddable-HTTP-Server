@@ -61,8 +61,12 @@ HttpsAcceptor::HttpsAcceptor(boost::asio::io_service& ios, unsigned short port):
 
   // set ssl certification file
   m_SSLContext.use_certificate_chain_file(SSL_CERT_PATH);
+
+  std::cerr << SSL_CERT_PATH << std::endl;
   // set ssl private key file
   m_SSLContext.use_private_key_file(SSL_KEY_PATH, boost::asio::ssl::context::pem);
+
+  std::cerr << SSL_KEY_PATH;
 }
 
 
@@ -159,7 +163,7 @@ HttpsService::HttpsService():m_Request(4096), m_IsResponseSent(false)
 //Handle each HTTP request made by client
 void HttpsService::HttpsHandleRequest(SSLStream ssl_stream)
 {
-  //try{
+  try{
     //perform TLS handshake
     ssl_stream.handshake(boost::asio::ssl::stream_base::server);
 
@@ -212,10 +216,10 @@ void HttpsService::HttpsHandleRequest(SSLStream ssl_stream)
     }
         return;
     }
- // }catch(boost::system::system_error& ec) {
- //   std::cout<<"Error occured, Error code = "<<ec.code()
-       //           <<" Message: "<<ec.what();
-  //}
+  }catch(boost::system::system_error& ec) {
+    std::cout<<"Error occured, Error code = "<<ec.code()
+                  <<" Message: "<<ec.what();
+  }
 }
 
 //returns ip address of connected endpoint
@@ -248,7 +252,7 @@ void HttpsService::ProcessGetRequest(SSLStream ssl_stream)
 
   //if resource is null or / then set resource to index.html file
   if(m_RequestedResource.compare("/") == 0){
-    m_RequestedResource = std::string("/index.html");
+    m_RequestedResource = std::string("/index.php");
     std::ofstream outfile(RESOURCE_DIR_PATH + m_RequestedResource, std::ios::out);
     outfile<<m_DefaultIndexPage;
     outfile.close();
@@ -286,26 +290,6 @@ void HttpsService::ProcessGetRequest(SSLStream ssl_stream)
   //send response with file
   SendResponse(ssl_stream);
 
-}
-
-std::string HttpsService::GetCGIProgram(std::string resource_file)
-{
-  std::ifstream in(resource_file, std::ios::in);
-  char data[4096];
-  while(in.getline(data, 4096)){
-    std::string str(data);
-    std::size_t find = str.find("#!");
-    if(find != std::string::npos){
-      std::string program = str.substr(find + 2, str.length() - 2);
-      program.erase(remove_if(program.begin(), program.end(), isspace), program.end());
-      in.close();
-
-      //return std::move(program);
-            return program;
-    }
-  }
-  in.close();
-  return "";
 }
 
 void HttpsService::ProcessPostRequest(SSLStream ssl_stream)
@@ -356,15 +340,15 @@ void HttpsService::ProcessPostRequest(SSLStream ssl_stream)
           boost::contains(m_RequestedResource, ".py") ||
           boost::contains(m_RequestedResource, ".pl")){
 
-           std::string program = GetCGIProgram(resource_file_path);
+           std::string program;// = GetCGIProgram(resource_file_path);
 
            //if program name is empty and requested source contain .py,
            //then set program to python3 by default
-           if(program.empty() && boost::contains(m_RequestedResource, ".py")){
+           if(boost::contains(m_RequestedResource, ".py")){
              program = "/usr/bin/python3";
            }
 
-           if(program.empty() && boost::contains(m_RequestedResource, ".pl")){
+           if(boost::contains(m_RequestedResource, ".pl")){
              program = "/usr/bin/perl";
            }
 
