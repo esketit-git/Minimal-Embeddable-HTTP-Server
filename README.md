@@ -5,6 +5,8 @@ We are using Code::Blocks on Linux.
 
 Keep the HTTP and HTTPS sperate. Use the functions for code used both by HTTP or HTTPS. Keep the HTTP and HTTPS monolithic.
 
+Uses PHP-CGI, work to support other languages and make the HTTP and HTTP more concise.
+
 Project -> Build Options -> Links Settings add: boost_system boost_filesystem pthread crypto ssl
 
 The original sources contained support for HEAD, DELETE and OPTIONS but they have been deleted. Only GET and POST requests are supported.
