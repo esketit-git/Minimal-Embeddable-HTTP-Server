@@ -139,7 +139,7 @@ bool is_SSL_there() {
 
 //Send the POST header to PHP-CGI , the same for both http and https
 
-std::string gen_cgi_script(std::string request_data, std::string file_name, std::string query_string)
+std::string gen_cgi_script(std::string request_data, std::string file_name, std::string query_string, std::string req)
     {
 
         /*Generate this in a script to execute,
@@ -171,7 +171,7 @@ std::string gen_cgi_script(std::string request_data, std::string file_name, std:
                 shell_script << "export QUERY_STRING=\"" + query_string + "\"\n";
                 shell_script << "export REDIRECT_STATUS=\"200\"\n";
                 shell_script << "export SCRIPT_FILENAME=\"" + file_name + "\"\n";
-                shell_script << "export REQUEST_METHOD=\"POST\"\n";
+                shell_script << "export REQUEST_METHOD=\"" + req + "\"\n";  //GET or POST
                 shell_script << "export CONTENT_LENGTH=${#REQUEST_DATA}\n";
                 shell_script << "export CONTENT_TYPE=\"application/x-www-form-urlencoded;charset=utf-8\"\n";
                 shell_script << "echo $REQUEST_DATA | /usr/bin/php-cgi";

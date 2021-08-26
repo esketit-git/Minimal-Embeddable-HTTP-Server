@@ -115,14 +115,16 @@ private:
     // Construct a response message based on the program state.
     void GET_response()
     {
+        std:: string cmd;
+    //its a GET request
 
-           //the GET / POST is in case http::verb::post:
-            std::string webpage = std::string(request_.target());
-            //get response_.target (file to get) and read the file in from the hard disk
-            //and then display it using response.body -> beast::ostream(response_.body()) <<
-            std::string resource_file_path = RESOURCE_DIR_PATH + webpage;
+        //the GET / POST is in case http::verb::post:
+        std::string webpage = std::string(request_.target()); //file to get, get response_.target (file to get)
 
-            response_.set(boost::beast::http::field::content_type, "text/html");
+        //display it using response.body -> beast::ostream(response_.body())
+        std::string resource_file_path = RESOURCE_DIR_PATH + webpage;
+
+        response_.set(boost::beast::http::field::content_type, "text/html");
 
         if(request_.target() == "/time")
         {
@@ -132,19 +134,28 @@ private:
                 <<  "<p>The current time is "
                 <<  my_program_state::now()
                 <<  " seconds since the epoch.</p>\n";
-        }
 
-        else if (webpage.substr(webpage.find_last_of(".") + 1) == "php" ||
-                 webpage.substr(webpage.find_last_of(".") + 1) == "py"  ||
-                 webpage.substr(webpage.find_last_of(".") + 1) == "cgi" ||
-                 webpage.substr(webpage.find_last_of(".") + 1) == "py")
-        {
+        } else if (webpage.substr(webpage.find_last_of(".") + 1) == "php") {
 
-                 POST_response(); return;
-        }
+                POST_response("GET");
 
-        else
-        {
+        } else if (webpage.substr(webpage.find_last_of(".") + 1) == "py") {
+
+                //python
+                cmd = "/usr/bin/python " + resource_file_path;
+
+
+        } else if (webpage.substr(webpage.find_last_of(".") + 1) == "pl") {
+
+                //perl
+                cmd = "/usr/bin/perl " + resource_file_path;
+
+
+        } else if (webpage.substr(webpage.find_last_of(".") + 1) == "rb") {
+
+                    //ruby
+
+        } else {
 
             std::ifstream ifs(resource_file_path);
 
@@ -174,7 +185,7 @@ private:
     } // GET_response
 
 
-    void POST_response()
+    void POST_response(std::string method = "POST")
     {
 
     std:: string cmd; std::string webpage;
@@ -198,7 +209,7 @@ private:
 
                     std::string request_body = boost::beast::buffers_to_string(request_.body().data());
 
-                    cmd = gen_cgi_script(request_body, resource_file_path, "");
+                    cmd = gen_cgi_script(request_body, resource_file_path, "", method);
 
 
                     x = 1;

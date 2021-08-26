@@ -28,13 +28,7 @@ typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& SSLStream;
 //http methods types
 enum class HttpMethods{
   GET,
-  HEAD,
   POST,
-  PUT,
-  DELETE,
-  CONNECT,
-  OPTIONS,
-  TRACE,
 };
 
 //each http request returned by parser
@@ -91,37 +85,8 @@ class HttpsService
     std::string m_ContentType;
 
 
-    const std::string m_DefaultIndexPage = "<html>\n<head>\n<title>HTTPS Web Server</title>\
-        \n<style type=\"text/css\" media=\"screen\">\
-          \nbody, html {padding: 3px 3px 3px 3px;background-color: #D8DBE2;\
-            font-family: Verdana, sans-serif;font-size: 11pt;text-align: center;\
-          }\ndiv.main_page{position: relative;display: table;width: 800px;margin-bottom: 3px;\
-          margin-left: auto;margin-right: auto;padding: 0px 0px 0px 0px;border-width: 2px;\
-          border-color: #DA2447;border-style: solid;background-color: #FFFFFF;text-align: center;\
-          }\ndiv.page_header{height: 99px;width: 100%;background-color: #F5F6F7;}\
-          \ndiv.page_header span{margin: 15px 0px 0px 50px;font-size: 180%;font-weight: bold;}\
-          \ndiv.content_section_text{padding: 4px 8px 4px 8px;color: #000000;font-size: 100%;\
-          }\ndiv.section_header{padding: 3px 6px 3px 6px;background-color: #8E9CB2;color: #FFFFFF;\
-          font-weight: bold;font-size: 112%;text-align: center;}div.section_header_red {\
-          background-color: #DA2447;}\n.floating_element{position: relative;float: center;}\
-          </style>\n</head>\n<body><br/><div class=\"main_page\"><div class=\"page_header floating_element\">\
-          <span class=\"floating_element\"><br/>HTTPS Web Server</span></div>\
-          <div class=\"content_section floating_element\">\
-          <div class=\"section_header section_header_red\"><div id=\"about\"></div>It works!</div>\
-          <div class=\"content_section_text\"><br/><p>\
-          This is the default welcome page used to test the correct operation of the HTTPS Web Server.\
-          <br>If you can read this page, it means that the HTTPS Web server at this site is working properly.\
-          <br>You should <b>replace this file</b> (located at\
-          <tt>the provided path when server is started /index.html</tt>)\
-          before continuing to operate your HTTPS server.\
-          <br>Request the static HTML page with Server IP and port <b>1234</b>.\
-          <br>Request the PHP script and get it's the interpreted contents.\
-          </p><br><a style=\"text-decoration:none;\"\
-          href=\"https://github.com/pritamzope/http_web_server/\">\
-          https://github.com/pritamzope/http_web_server/</a><br><br>\
-          </div></div></div>\n</body>\n</html>";
-
-
+    const std::string m_DefaultIndexPage = "<html>\n<head>\n<title>esketit</title>\
+            </head>\n<body>esketit - the file is not found\n</body>\n</html>"; //if the page is not found generate a default page
 };
 
 
@@ -286,20 +251,8 @@ std::shared_ptr<HttpRequest> HttpRequestParser::GetHttpRequest()
 
   if(request_method.compare("GET") == 0){
     request->method = HttpMethods::GET;
-  }else if(request_method.compare("HEAD") == 0){
-    request->method = HttpMethods::HEAD;
   }else if(request_method.compare("POST") == 0){
     request->method = HttpMethods::POST;
-  }else if(request_method.compare("PUT") == 0){
-    request->method = HttpMethods::PUT;
-  }else if(request_method.compare("DELETE") == 0){
-    request->method = HttpMethods::DELETE;
-  }else if(request_method.compare("CONNECT") == 0){
-    request->method = HttpMethods::CONNECT;
-  }else if(request_method.compare("OPTIONS") == 0){
-    request->method = HttpMethods::OPTIONS;
-  }else if(request_method.compare("TRACE") == 0){
-    request->method = HttpMethods::TRACE;
   }else{
     request->status = 400;
   }
@@ -358,15 +311,6 @@ void HttpsService::HttpsHandleRequest(SSLStream ssl_stream)
           break;
         case HttpMethods::POST :
           ProcessPostRequest(ssl_stream);
-          break;
-        case HttpMethods::HEAD :
-          ProcessHeadRequest(ssl_stream);
-          break;
-        case HttpMethods::DELETE :
-          ProcessDeleteRequest(ssl_stream);
-          break;
-        case HttpMethods::OPTIONS :
-          ProcessOptionsRequest(ssl_stream);
           break;
         default: break;
       }
@@ -567,60 +511,6 @@ void HttpsService::ExecuteProgram(std::string command, std::string outputfile)
   //read output file into resource buffer
   resource_fstream.seekg(std::ifstream::beg);
   resource_fstream.read(m_ResourceBuffer.get(), m_ResourceSizeInBytes);
-}
-
-//process head request by sending only headers not file
-void HttpsService::ProcessHeadRequest(SSLStream ssl_stream)
-{
-  if(m_RequestedResource.empty()){
-    m_ResponseStatusCode = 400;
-    SendResponse(ssl_stream);
-    return;
-  }
-
-  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
-
-  if(!boost::filesystem::exists(resource_file_path)){
-    m_ResponseStatusCode = 404;
-    SendResponse(ssl_stream);
-    return;
-  }
-
-  std::ifstream resource_fstream(resource_file_path, std::ifstream::binary);
-
-  if(!resource_fstream.is_open()){
-    m_ResponseStatusCode = 500;
-    return;
-  }
-
-  resource_fstream.seekg(0, std::ifstream::end);
-  m_ResourceSizeInBytes = static_cast<std::size_t>(resource_fstream.tellg());
-
-  SendResponse(ssl_stream);
-
-}
-
-//delete the requested resource
-void HttpsService::ProcessDeleteRequest(SSLStream ssl_stream)
-{
-  if(m_RequestedResource.empty()){
-    m_ResponseStatusCode = 400;
-    SendResponse(ssl_stream);
-    return;
-  }
-
-  std::string resource_file_path = RESOURCE_DIR_PATH + m_RequestedResource;
-
-  if(!boost::filesystem::exists(resource_file_path)){
-    m_ResponseStatusCode = 404;
-    SendResponse(ssl_stream);
-    return;
-  }
-
-  std::remove(resource_file_path.c_str());
-
-  SendResponse(ssl_stream);
-
 }
 
 void HttpsService::ProcessOptionsRequest(SSLStream ssl_stream)
