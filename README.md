@@ -9,4 +9,4 @@ Based on https://www.boost.org/doc/libs/develop/libs/beast/example/http/server/s
 
 Project -> Build Options -> Links Settings add: boost_system boost_filesystem pthread crypto ssl
 
-The original sources contained support for head, delete and options but they have been deleted. Only GET and POST requests are supported.
+The original sources contained support for HEAD, DELETE and OPTIONS but they have been deleted. Only GET and POST requests are supported.
