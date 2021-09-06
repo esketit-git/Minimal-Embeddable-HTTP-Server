@@ -7,6 +7,7 @@ REQUEST_DATA="var_1=val_1&var_2=val_2"
 export GATEWAY_INTERFACE="CGI/1.1"
 export SERVER_PROTOCOL="HTTP/1.1"
 export QUERY_STRING="test=querystring"
+export HTTP_COOKIE="user_id=abc123"
 export REDIRECT_STATUS="200"
 export SCRIPT_FILENAME="test.php"
 export REQUEST_METHOD="POST"
@@ -18,6 +19,8 @@ echo $REQUEST_DATA | /usr/bin/php-cgi -q
 #a php file called test.php (SCRIPT_FILENAME) and
 
 <?php
+
+print_r($_COOKIE);
 
 $v1 = $_POST['var_1'];
 $v2 = $_POST['var_2'];
