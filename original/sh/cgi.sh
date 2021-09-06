@@ -61,3 +61,16 @@ export REDIRECT_STATUS=true
 export SCRIPT_FILENAME=/var/www/test.php 
 export REQUEST_METHOD=POST 
 export HTTP_COOKIE=PHPSESSID=vfg5csi76qpt3qlfml359ad210
+
+Setting the HTTP_COOKIE or COOKIE enviroment variables before running the script should do the trick...
+
+#https://www.perlmonks.org/?node_id=156779
+
+      # (ba)sh
+    HTTP_COOKIE="..."; export HTTP_COOKIE
+
+      # (t)csh
+    setenv HTTP_COOKIE "..."
+
+      # DOS
+    set HTTP_COOKIE="..."
