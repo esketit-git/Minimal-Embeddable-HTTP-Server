@@ -1,4 +1,7 @@
 #!/bin/sh
+# These variables come from the CGI standard rfc3875
+# https://datatracker.ietf.org/doc/html/rfc3875
+
 REQUEST_DATA="var_1=val_1&var_2=val_2"
 export GATEWAY_INTERFACE="CGI/1.1"
 export SERVER_PROTOCOL="HTTP/1.1"
