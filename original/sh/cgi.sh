@@ -1,6 +1,7 @@
 #!/bin/sh
 # These variables come from the CGI standard rfc3875
 # https://datatracker.ietf.org/doc/html/rfc3875
+# php-cgi has some switches such as quiet mode -q
 
 REQUEST_DATA="var_1=val_1&var_2=val_2"
 export GATEWAY_INTERFACE="CGI/1.1"
@@ -11,7 +12,7 @@ export SCRIPT_FILENAME="test.php"
 export REQUEST_METHOD="POST"
 export CONTENT_LENGTH=${#REQUEST_DATA}
 export CONTENT_TYPE="application/x-www-form-urlencoded;charset=utf-8"
-echo $REQUEST_DATA | /usr/bin/php-cgi
+echo $REQUEST_DATA | /usr/bin/php-cgi -q
 
 #This script can be run by creating cgi.sh chmod 755, create
 #a php file called test.php (SCRIPT_FILENAME) and
