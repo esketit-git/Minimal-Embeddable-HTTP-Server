@@ -13,8 +13,24 @@ export CONTENT_LENGTH=${#REQUEST_DATA}
 export CONTENT_TYPE="application/x-www-form-urlencoded;charset=utf-8"
 echo $REQUEST_DATA | /usr/bin/php-cgi
 
+#This script can be run by creating cgi.sh chmod 755, create
+#a php file called test.php (SCRIPT_FILENAME) and
 
-Similar Windows versions could be...
+<?php
+
+$v1 = $_POST['var_1'];
+$v2 = $_POST['var_2'];
+
+echo $v1;
+echo "\n";
+echo $v2;
+echo "\n\n";
+
+?>
+
+The PHP-CGI executable gets the shell script and outputs the POST vars to the test.php.
+
+For Windows, perhaps a batch file, version could be...
 
 
     set REDIRECT_STATUS=true
