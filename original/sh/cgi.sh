@@ -65,6 +65,7 @@ export HTTP_COOKIE=PHPSESSID=vfg5csi76qpt3qlfml359ad210
 Setting the HTTP_COOKIE or COOKIE enviroment variables before running the script should do the trick...
 
 #https://www.perlmonks.org/?node_id=156779
+#http://www.cgi101.com/book/ch3/text.html
 
       # (ba)sh
     HTTP_COOKIE="..."; export HTTP_COOKIE
