@@ -209,6 +209,17 @@ private:
 
                     std::string request_body = boost::beast::buffers_to_string(request_.body().data());
 
+                   // std::cerr << request_body << std::endl;
+
+                    /* for (auto param : boost::beast::http::param_list(request_[boost::beast::http::field::cookie])) {
+                        // std::cerr << "Cookie '" << param.first << "' has value '" << param.second << "'\n";
+                    }
+
+                    for (auto param : boost::beast::http::param_list(";" + request_[boost::beast::http::field::cookie].to_string())) {
+                        std::cerr << "Cookie '" << param.first << "' has value '" << param.second << "'\n";
+                    }
+                    */
+
                     cmd = gen_cgi_script(request_body, resource_file_path, "", method);
 
 
@@ -238,45 +249,54 @@ private:
 
        if (x == 1) {
 
-                //a temporary file where output of an PHP interpretor will be stores
-                std::string pwd = get_current_dir_name();
-                std::string temp_output_file = pwd + std::string("/tempfile");
-                //std::string cmd = RESOURCE_DIRECTORY_PATH + std::string("/cgi.sh");
-                                    //std::string chmod_script = "chmod 777 " + temp_output_file;
-                                    //int ret = system(chmod_script.c_str());
+                /*
+                 The old way for to write to a file and then read the file to socket
+                 This method uses a function to get the system command output into a
+                 string and send the string to the socket.
 
-                        std::string command = cmd + " > " + temp_output_file;
-
-                       // std::cerr << command;
-
-                        int ret = system(command.c_str());
-
-                //boost::process::system(cmd, boost::process::std_out);// > temp_output_file);
-
-                //send output to client
-                std::ifstream ifs(temp_output_file);
-
-                //check for file exist or send "file not found"
-                struct stat buffer;
-
-                if (stat (resource_file_path.c_str(), &buffer) == 0) {
-
-
-
-                    std::string content((std::istreambuf_iterator<char>(ifs)),
-                                        (std::istreambuf_iterator<char>()));
-
-                        boost::beast::ostream(response_.body()) << content;
-
-                    //remove tempoutputfile
-                    std::remove(cmd.c_str());
+                    std::string pwd = get_current_dir_name(); temp file PHP-CGI output
+                    std::string temp_output_file = pwd + std::string("/tempfile");
+                    std::string cmd = RESOURCE_DIRECTORY_PATH + std::string("/cgi.sh");
+                     //std::string chmod_script = "chmod 777 " + temp_output_file;
+                     //int ret = system(chmod_script.c_str());
+                     //boost::process::system(cmd, boost::process::std_out);// > temp_output_file);
+                    std::string command = cmd + " > " + temp_output_file; //the command
                     std::remove(temp_output_file.c_str());
+                    rename("tmpfile",temp_output_file.c_str());
+                    std::remove(temp_output_file.c_str());
+                    //from, to
+                    std::rename("temp.txt", temp_output_file.c_str());
+                    std::remove(temp_output_file.c_str());
+                    // rename old to new
+                    std::rename("tmpfil", temp_output_file.c_str());
+                    //send output to client
+                    std::ifstream ifs(temp_output_file);
+                    //check for file exist or send "file not found"
+                    struct stat buffer;
+                    if (stat (resource_file_path.c_str(), &buffer) == 0) {
+                        std::string content((std::istreambuf_iterator<char>(ifs)),
+                                        (std::istreambuf_iterator<char>()));
+                        boost::beast::ostream(response_.body()) << content;
+                        std::remove(temp_output_file.c_str());
+                */
 
-                } else {
 
+        std::string tmp_output = "<!-- esketit systems ";
+                    tmp_output += GetStdoutFromCommand(cmd);
 
-                        boost::beast::ostream(response_.body()) << "Server is embedded - send correct full paths only.";
-                }
+                    replace(tmp_output, "<html>", "--> <html>"); //comment out php-cgi output
+
+        //check if there was an output if not
+        if (tmp_output == "")  tmp_output = "Server is embedded - send correct full paths only.";
+
+        //The CGI bash script is set to to be replaced with inline c++ send to php cgi
+        //Until then, a patch is to remove the header from the body.
+        // add <!-- to hide php-cgi output if any -->
+
+        boost::beast::ostream(response_.body()) << tmp_output;
+
+        std::remove(cmd.c_str()); //remove the shell script
+
 
        } else {  /*unsupported post scripting language*/
 

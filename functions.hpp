@@ -9,8 +9,8 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
-
 #include <algorithm>
+#include <cstdio>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -171,10 +171,12 @@ std::string gen_cgi_script(std::string request_data, std::string file_name, std:
                 shell_script << "export QUERY_STRING=\"" + query_string + "\"\n";
                 shell_script << "export REDIRECT_STATUS=\"200\"\n";
                 shell_script << "export SCRIPT_FILENAME=\"" + file_name + "\"\n";
+                //shell_script << "export HTTP_COOKIE=\"" + "user_id=abc123" + "\"\n";
+                shell_script << "export HTTP_COOKIE=\"user_id=abc123\"\n";
                 shell_script << "export REQUEST_METHOD=\"" + req + "\"\n";  //GET or POST
                 shell_script << "export CONTENT_LENGTH=${#REQUEST_DATA}\n";
                 shell_script << "export CONTENT_TYPE=\"application/x-www-form-urlencoded;charset=utf-8\"\n";
-                shell_script << "echo $REQUEST_DATA | /usr/bin/php-cgi";
+                shell_script << "echo $REQUEST_DATA | /usr/bin/php-cgi -q";
                 shell_script.close();
 
                     std::string chmod_script = "chmod 777 " + cgi_script_path;
@@ -184,5 +186,31 @@ std::string gen_cgi_script(std::string request_data, std::string file_name, std:
     return cgi_script_path;
 
     }
+
+
+std::string GetStdoutFromCommand(std::string cmd) {
+
+  std::string data;
+  FILE * stream;
+  const int max_buffer = 256;
+  char buffer[max_buffer];
+  cmd.append(" 2>&1");
+
+  stream = popen(cmd.c_str(), "r");
+  if (stream) {
+    while (!feof(stream))
+      if (fgets(buffer, max_buffer, stream) != NULL) data.append(buffer);
+    pclose(stream);
+  }
+  return data;
+}
+
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
 
 #endif
