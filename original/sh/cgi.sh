@@ -20,7 +20,6 @@ echo $REQUEST_DATA | /usr/bin/php-cgi -q
 
 <?php
 
-//set $ENV on the system if no COOKIE superglobal exists
 print_r($_COOKIE);
 
 $v1 = $_POST['var_1'];
